@@ -1,5 +1,5 @@
 const { Schema, model } = require('mongoose');
-const Tag = require('./Tag');
+const formattedDate = require('../utils/formatDate');
 
 // Schema to create Post model
 const reactionSchema = new Schema(
@@ -20,13 +20,18 @@ const reactionSchema = new Schema(
     createdAt: {
       type: Date,
       default: Date.now,
-    }
+      get: (timestamp) => formattedDate(timestamp),
+    },
+  },
+  {
+    toJSON: {
+      getters: true,
+    },
   }
 );
 
 // Create a virtual property `getTags` that gets the amount of tags associated with an application
 
 // Initialize our Application model
-const Reaction = model('Reaction', reactionSchema);
 
-module.exports = Reaction;
+module.exports = reactionSchema;

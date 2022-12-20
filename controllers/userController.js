@@ -9,7 +9,7 @@ module.exports = {
   getSingleUser(req,res) {
     User.findOne({  _id: req.params.userId })
     .then((userData) =>
-    !user
+    !userData
       ? res.status(404).json({ message: 'No user with this Id'})
       : res.json(userData)
       )
@@ -21,7 +21,7 @@ module.exports = {
     .catch((err) => res.status(500).json(err));
   },
   updateUser(req,res) {
-    User.updateOne(
+    User.findOneAndUpdate(
       { _id: req.params.userId },
       { $set: req.body },
       { runValidators: true, new: true}
@@ -47,4 +47,18 @@ module.exports = {
       res.status(500).json(err);
     })
   },
+  addFriend(req,res) {
+    User.findOneAndUpdate(
+      {_id:req.params.userId},
+      { $addToSet: {friends: req.params.friendId}},
+      {new: true}
+    ).then((updatedUser)=> {
+      !updatedUser
+        ? res.status(404).json({message: 'no user with this id'})
+        : res.json(updatedUser)
+    }).catch((err) => {
+      console.log(err);
+      res.status(500).json(err);
+    })
+  }
 };

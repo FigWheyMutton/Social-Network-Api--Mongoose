@@ -21,7 +21,8 @@ router
 
 // /api/applications/:applicationId/tags
 router.route('/:thoughtsId/reactions')
-.post(singleThoughtReaction)
+  .post(singleThoughtReaction)
+  .delete(singleThoughtDelete);
 // .delete(singleThoughtDelete);
 
 module.exports = router;

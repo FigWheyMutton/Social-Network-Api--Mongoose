@@ -1,13 +1,13 @@
-const { isObjectIdOrHexString } = require('mongoose');
 const { User, Thought, } = require('../models');
 const reactionSchema = require('../models/Reaction');
 
 module.exports = {
   getThoughts(req,res) {
-    Thought.findAll()
+    Thought.find()
     .then((allThoughts) => res.json(allThoughts))
     .catch((err) => res.status(500).json(err));
   },
+
   getSingleThought(req,res) {
     Thought.findOne({ _id: req.params.thoughtsId })
     .then((thoughtDb) => 
@@ -20,10 +20,11 @@ module.exports = {
     })
   },
   createThoughts(req,res) {
+    console.log(req.body)
     Thought.create(req.body)
     .then((thoughtDb) => {
         return User.findOneAndUpdate(
-            { _id: req.body.username },
+            { _id: req.body._id },
             {$addToSet: { thoughts: thoughtDb._id }},
             { new: true }
         );
@@ -54,7 +55,7 @@ module.exports = {
         { _id: req.body.thoughtsId},
     ).then((thought) =>
     !thought   
-        ? res.status(404).json({ message: 'No Thought was found with this Id'})
+        ? res.status(404).json({ message: 'Thought was deleted'})
         : User.findOneAndUpdate(
             { thoughts: req.params.thoughtsId },
             { $pull: { thoughts: req.params.thoughtsId}},
@@ -68,36 +69,24 @@ module.exports = {
     })
   },
   singleThoughtReaction(req,res) {
-    Thought.findOne({ _id: req.params.thoughtsId })
-    .then((thought)=> 
-    !thought
-        ? res.status(404).json({ message: 'No id found for this thought'})
-        : reactionSchema.create(
-        { where: req.params.thoughtsId },
-        {$addToSet: { reactions: req.body }},
-        {new: true})
-    ).then((reaction) => {
-        !reaction
-            ? res.status(404).json({ message: 'The Thought was successfully found but reactions were not updated'})
-            : res.json({ message: "Reactions successfully added"})
+    console.log(req.body)
+    console.log(req.params)
+    Thought.findOneAndUpdate({ _id: req.params.thoughtsId }, { $addToSet: { reactions: req.body }}, { runValidators: true, new: true} )
+    .then((thought) => {
+        !thought
+            ? res.status(404).json({ message: 'No thought with this ID'})
+            : res.json({ message: "Reaction successfully added"})
     }).catch((err) => {
         res.status(500).json(err)
     })
   },
-  singleThoughtDelete(req,res) {
-    Thought.findOne({ _id: req.params.thoughtsId })
+  singleThoughtReactionDelete(req,res) {
+    Thought.findOneAndUpdate({ _id: req.params.thoughtsId }, {$pull: {reactions: {reactionId: req.params.reactionId}}}, {new: true })
     .then((thought) =>
     !thought
         ? res.status(404).json({ message: 'Thought Id was not found'})
-        : reactionSchema.findOneAndDelete(
-            { _id: req.params.thoughtsId},
-            { $pull: {reactions: req.params.thoughtsId}}
-        )
-    ).then((reactionDel) => {
-        !reactionDel
-            ? res.status(404).json({ message: 'Reaction was not found and not deleted'})
-            : res.status(reactionDel)
-    }).catch((err)=> {
+        : res.json(thought)
+    ).catch((err)=> {
         res.json(500).json(err)
     })
   }

@@ -1,4 +1,4 @@
-const { Schema, model } = require('mongoose');
+const { Schema, Types } = require('mongoose');
 const formattedDate = require('../utils/formatDate');
 
 // Schema to create Post model
